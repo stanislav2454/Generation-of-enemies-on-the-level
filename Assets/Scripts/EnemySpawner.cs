@@ -30,10 +30,8 @@ public class EnemySpawner : MonoBehaviour
 
             EnemyMovement newEnemy = Instantiate(_enemyPrefab, randomSpawnPoint.position, randomSpawnPoint.rotation);
 
-            EnemyMovement enemyMovement = newEnemy.GetComponent<EnemyMovement>();
-
-            if (enemyMovement != null)
-                enemyMovement.SetRandomDirection();
+            if (newEnemy != null)
+                newEnemy.SetRandomDirection();
 
             yield return _spawnWait;
         }
