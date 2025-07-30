@@ -9,7 +9,7 @@ public class EnemyMovement : MonoBehaviour
     {
         direction = newDirection.normalized;
     }
-
+    // два варианта движения: в указанном или рандомном направлнии
     public void SetRandomDirection()
     {
         float randomX = Random.Range(-1f, 1f);
