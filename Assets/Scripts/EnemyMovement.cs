@@ -2,24 +2,29 @@
 
 public class EnemyMovement : MonoBehaviour
 {
-    [SerializeField] private float _speed = 5f;
-    private Vector3 direction;
+    const float MinimumInclusiveRangeValue = -1f;
+    const float MaximumInclusiveRangeValue = 1f;
 
-    public void SetDirection(Vector3 newDirection)
+    [SerializeField] private float _speed = 5f;
+    [SerializeField] private float _lifetime = 3f;
+
+    private Vector3 _direction;
+
+    private void OnEnable()
     {
-        direction = newDirection.normalized;
+        Destroy(gameObject, _lifetime);
     }
-    // два варианта движения: в указанном или рандомном направлнии
+
     public void SetRandomDirection()
     {
-        float randomX = Random.Range(-1f, 1f);
-        float randomZ = Random.Range(-1f, 1f);
+        float randomX = Random.Range(MinimumInclusiveRangeValue, MaximumInclusiveRangeValue);
+        float randomZ = Random.Range(MinimumInclusiveRangeValue, MaximumInclusiveRangeValue);
 
-        direction = new Vector3(randomX, 0f, randomZ).normalized;
+        _direction = new Vector3(randomX, 0f, randomZ).normalized;
     }
 
     private void Update()
     {
-        transform.Translate(direction * _speed * Time.deltaTime, Space.World);
+        transform.Translate(_direction * _speed * Time.deltaTime, Space.World);
     }
 }

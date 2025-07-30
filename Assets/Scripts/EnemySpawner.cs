@@ -3,33 +3,39 @@ using UnityEngine;
 
 public class EnemySpawner : MonoBehaviour
 {
-    [SerializeField] private Transform[] spawnPoints; 
-    [SerializeField] private GameObject enemyPrefab; 
-    [SerializeField] private float spawnInterval = 2f; 
+    [SerializeField] private float spawnInterval = 2f;
 
-    private void Start()
+    [SerializeField] private Transform[] _spawnPoints;
+    [SerializeField] private EnemySphere _enemyPrefab;
+
+    private Coroutine _spawningCoroutine;
+    private WaitForSeconds _spawnWait;
+
+    private void OnEnable()
     {
-        StartCoroutine(SpawnEnemies());
+        _spawnWait = new WaitForSeconds(spawnInterval);
+        _spawningCoroutine = StartCoroutine(SpawnEnemies());
+    }
+
+    private void OnDisable()
+    {
+        StopCoroutine(_spawningCoroutine);
     }
 
     private IEnumerator SpawnEnemies()
     {
-        while (enabled) 
+        while (enabled)
         {
-            yield return new WaitForSeconds(spawnInterval); 
+            Transform randomSpawnPoint = _spawnPoints[Random.Range(0, _spawnPoints.Length)];
 
-            Transform randomSpawnPoint = spawnPoints[Random.Range(0, spawnPoints.Length)];
-
-            GameObject newEnemy = Instantiate(enemyPrefab, randomSpawnPoint.position, randomSpawnPoint.rotation);
+            EnemySphere newEnemy = Instantiate(_enemyPrefab, randomSpawnPoint.position, randomSpawnPoint.rotation);
 
             EnemyMovement enemyMovement = newEnemy.GetComponent<EnemyMovement>();
 
             if (enemyMovement != null)
-            {
-                // два варианта движения: в указанном или рандомном направлнии
                 enemyMovement.SetRandomDirection();
-                //enemyMovement.SetDirection(randomSpawnPoint.forward);
-            }
+
+            yield return _spawnWait;
         }
     }
 }
