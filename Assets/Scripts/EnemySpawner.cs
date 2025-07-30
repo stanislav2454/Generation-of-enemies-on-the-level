@@ -6,7 +6,7 @@ public class EnemySpawner : MonoBehaviour
     [SerializeField] private float spawnInterval = 2f;
 
     [SerializeField] private Transform[] _spawnPoints;
-    [SerializeField] private EnemySphere _enemyPrefab;
+    [SerializeField] private EnemyMovement _enemyPrefab;
 
     private Coroutine _spawningCoroutine;
     private WaitForSeconds _spawnWait;
@@ -28,7 +28,7 @@ public class EnemySpawner : MonoBehaviour
         {
             Transform randomSpawnPoint = _spawnPoints[Random.Range(0, _spawnPoints.Length)];
 
-            EnemySphere newEnemy = Instantiate(_enemyPrefab, randomSpawnPoint.position, randomSpawnPoint.rotation);
+            EnemyMovement newEnemy = Instantiate(_enemyPrefab, randomSpawnPoint.position, randomSpawnPoint.rotation);
 
             EnemyMovement enemyMovement = newEnemy.GetComponent<EnemyMovement>();
 
