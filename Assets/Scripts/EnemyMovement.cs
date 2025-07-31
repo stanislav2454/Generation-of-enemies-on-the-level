@@ -1,76 +1,74 @@
-﻿using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class EnemyMovement : MonoBehaviour
 {
-    //const float MinimumInclusiveRangeValue = -1f;
-    //const float MaximumInclusiveRangeValue = 1f;
-
     [SerializeField] private float _speed = 5f;
-    [SerializeField] private float _lifetime = 3f;
+    [SerializeField] private float _rotationSpeed = 5f;
     [SerializeField] private float _reachThreshold = 0.2f;
 
-    private List<Transform> _waypoints = new List<Transform>();
-    private int _currentWaypointIndex = 0;
-
-    //private Vector3 _direction;
-
-    private void OnEnable()
-    {
-        Destroy(gameObject, _lifetime);
-    }
-
-    public void Initialize(Transform[] waypoints)
-    {
-        _waypoints = new List<Transform>(waypoints);
-        _currentWaypointIndex = 0;
-
-        // Начинаем движение к первому waypoint
-        if (_waypoints.Count > 0)
-        {
-            transform.LookAt(_waypoints[_currentWaypointIndex].position);
-        }
-    }
-
-    //public void SetRandomDirection()
-    //{
-    //    float randomX = Random.Range(MinimumInclusiveRangeValue, MaximumInclusiveRangeValue);
-    //    float randomZ = Random.Range(MinimumInclusiveRangeValue, MaximumInclusiveRangeValue);
-
-    //    _direction = new Vector3(randomX, 0f, randomZ).normalized;
-    //}
+    private EnemyPath _path;
+    private int _currentWaypointIndex;
+    private Transform _currentWaypoint;
 
     private void Update()
     {
-        if (_waypoints.Count == 0) return;
+        if (_path == null)
+            return;
 
-        Transform currentWaypoint = _waypoints[_currentWaypointIndex];
+        MoveTowardsWaypoint();
+        RotateTowardsWaypoint();
+        CheckWaypointReached();
+    }
 
-        // Движение к waypoint
+    public void Initialize(EnemyPath path)
+    {
+        if (path == null || path.Count == 0)
+            return;
+
+        _path = path;
+        _currentWaypointIndex = 0;
+        UpdateCurrentWaypoint();
+        transform.LookAt(_currentWaypoint.position);
+    }
+
+    private void MoveTowardsWaypoint()
+    {
         transform.position = Vector3.MoveTowards(
             transform.position,
-            currentWaypoint.position,
-            _speed * Time.deltaTime
-        );
+            _currentWaypoint.position,
+            _speed * Time.deltaTime);
+    }
 
-        // Поворот в сторону движения
-        if ((transform.position - currentWaypoint.position).sqrMagnitude > 0.01f)
+    private void RotateTowardsWaypoint()
+    {
+        var direction = _currentWaypoint.position - transform.position;
+
+        if (direction.sqrMagnitude > 0.01f)
         {
-            Quaternion targetRotation = Quaternion.LookRotation(
-                currentWaypoint.position - transform.position
-            );
             transform.rotation = Quaternion.Slerp(
                 transform.rotation,
-                targetRotation,
-                Time.deltaTime * 5f
-            );
+                Quaternion.LookRotation(direction),
+                _rotationSpeed * Time.deltaTime);
         }
+    }
 
-        // Проверка достижения waypoint
-        if (Vector3.Distance(transform.position, currentWaypoint.position) < _reachThreshold)
+    private void CheckWaypointReached()
+    {
+        float distance = Vector3.Distance(transform.position, _currentWaypoint.position);
+
+        if (distance < _reachThreshold)
         {
-            _currentWaypointIndex = (_currentWaypointIndex + 1) % _waypoints.Count;
+            _currentWaypointIndex++;
+
+            if (_currentWaypointIndex >= _path.Count)
+                _currentWaypointIndex = 0;
+
+            UpdateCurrentWaypoint();
         }
-        //transform.Translate(_direction * _speed * Time.deltaTime, Space.World);
+    }
+
+    private void UpdateCurrentWaypoint()
+    {
+        _currentWaypoint = _path.GetWaypoint(_currentWaypointIndex);
     }
 }

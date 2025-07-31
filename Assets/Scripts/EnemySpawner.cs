@@ -3,20 +3,20 @@ using UnityEngine;
 
 public class EnemySpawner : MonoBehaviour
 {
-    [SerializeField] private float spawnInterval = 2f;
+    [SerializeField] private float _spawnInterval = 2f;
+    [SerializeField] private EnemySpawnPoint[] _spawnPoints;
+    [SerializeField] private Enemy _enemyPrefab;
 
-    [SerializeField] private Transform[] _spawnPoints;
-    [SerializeField] private Transform[] _waypoints;
-    [SerializeField] private EnemyMovement _enemyPrefab;
-
-    private Coroutine _spawningCoroutine;
     private WaitForSeconds _spawnWait;
+    private Coroutine _spawningCoroutine;
 
-    private void OnEnable()
+    private void Awake()
     {
-        _spawnWait = new WaitForSeconds(spawnInterval);
-        _spawningCoroutine = StartCoroutine(SpawnEnemies());
+        _spawnWait = new WaitForSeconds(_spawnInterval);
     }
+
+    private void OnEnable() =>
+        _spawningCoroutine = StartCoroutine(SpawnRoutine());
 
     private void OnDisable()
     {
@@ -24,24 +24,39 @@ public class EnemySpawner : MonoBehaviour
             StopCoroutine(_spawningCoroutine);
     }
 
-    private IEnumerator SpawnEnemies()
+    private IEnumerator SpawnRoutine()
     {
         while (enabled)
         {
-            Transform randomSpawnPoint = _spawnPoints[Random.Range(0, _spawnPoints.Length)];
-
-            EnemyMovement newEnemy = Instantiate(_enemyPrefab, randomSpawnPoint.position, randomSpawnPoint.rotation);
-
-            //if (newEnemy != null)
-            //    newEnemy.SetRandomDirection();
-
-            if (newEnemy != null && _waypoints.Length > 0)
-            {
-                // Передаем waypoints врагу
-                newEnemy.Initialize(_waypoints);
-            }
-
             yield return _spawnWait;
+            TrySpawnEnemy();
+        }
+    }
+
+    private void TrySpawnEnemy()
+    {
+        if (_spawnPoints.Length == 0)
+        {
+            return;
+        }
+
+        EnemySpawnPoint spawnPoint = GetRandomSpawnPoint();
+        SpawnEnemyAtPoint(spawnPoint);
+    }
+
+    private EnemySpawnPoint GetRandomSpawnPoint()
+    {
+        int randomIndex = Random.Range(0, _spawnPoints.Length);
+        return _spawnPoints[randomIndex];
+    }
+
+    private void SpawnEnemyAtPoint(EnemySpawnPoint spawnPoint)
+    {
+        Enemy newEnemy = Instantiate(_enemyPrefab, spawnPoint.Position, spawnPoint.Rotation);
+
+        if (spawnPoint.Path != null && newEnemy.Movement != null)
+        {
+            newEnemy.Movement.Initialize(spawnPoint.Path);
         }
     }
 }
