@@ -35,10 +35,8 @@ public class EnemySpawner : MonoBehaviour
 
     private void TrySpawnEnemy()
     {
-        if (_spawnPoints.Length == 0)
-        {
-            return;
-        }
+        if (_spawnPoints.Length == 0)        
+            return;        
 
         EnemySpawnPoint spawnPoint = GetRandomSpawnPoint();
         SpawnEnemyAtPoint(spawnPoint);
@@ -54,9 +52,7 @@ public class EnemySpawner : MonoBehaviour
     {
         Enemy newEnemy = Instantiate(_enemyPrefab, spawnPoint.Position, spawnPoint.Rotation);
 
-        if (spawnPoint.Path != null && newEnemy.Movement != null)
-        {
-            newEnemy.Movement.Initialize(spawnPoint.Path);
-        }
+        if (spawnPoint.Path != null && newEnemy.Movement != null)        
+            newEnemy.Movement.Initialize(spawnPoint.Path);        
     }
 }

@@ -5,6 +5,7 @@ public class EnemyMovement : MonoBehaviour
     [SerializeField] private float _speed = 5f;
     [SerializeField] private float _rotationSpeed = 5f;
     [SerializeField] private float _reachThreshold = 0.2f;
+    [SerializeField] private float _rotationThreshold = 0.01f;
 
     private EnemyPath _path;
     private int _currentWaypointIndex;
@@ -43,7 +44,7 @@ public class EnemyMovement : MonoBehaviour
     {
         var direction = _currentWaypoint.position - transform.position;
 
-        if (direction.sqrMagnitude > 0.01f)
+        if (direction.sqrMagnitude > _rotationThreshold)
         {
             transform.rotation = Quaternion.Slerp(
                 transform.rotation,
