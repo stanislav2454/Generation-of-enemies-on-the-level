@@ -16,9 +16,9 @@ public class EnemyMovement : MonoBehaviour
         if (_path == null)
             return;
 
-        MoveTowardsWaypoint();
-        RotateTowardsWaypoint();
-        CheckWaypointReached();
+        transform.position = MoveTowardsWaypoint(transform, _currentWaypoint, _speed);
+        transform.rotation = RotateTowardsWaypoint(transform, _currentWaypoint, _rotationSpeed, _rotationThreshold);
+        _currentWaypoint = CheckWaypointReached(transform, _currentWaypoint, _reachThreshold, _path);
     }
 
     public void Initialize(EnemyPath path)
@@ -28,48 +28,64 @@ public class EnemyMovement : MonoBehaviour
 
         _path = path;
         _currentWaypointIndex = 0;
-        UpdateCurrentWaypoint();
+        _currentWaypoint = _path.GetWaypoint(_currentWaypointIndex);
+        //_currentWaypoint = UpdateCurrentWaypoint(_path, _currentWaypointIndex);
         transform.LookAt(_currentWaypoint.position);
     }
 
-    private void MoveTowardsWaypoint()
+    private Vector3 MoveTowardsWaypoint(Transform current, Transform currentWaypoint, float speed)
     {
-        transform.position = Vector3.MoveTowards(
-            transform.position,
-            _currentWaypoint.position,
-            _speed * Time.deltaTime);
+        Vector3 position = Vector3.MoveTowards(
+            current.position, currentWaypoint.position, speed * Time.deltaTime);
+
+        return position;
     }
 
-    private void RotateTowardsWaypoint()
+    private Quaternion RotateTowardsWaypoint(
+        Transform current, Transform currentWaypoint, float rotationSpeed, float rotationThreshold)
     {
-        var direction = _currentWaypoint.position - transform.position;
+        var direction = currentWaypoint.position - current.position;
+        Quaternion rotation = new();
 
-        if (direction.sqrMagnitude > _rotationThreshold)
+        if (direction.sqrMagnitude > rotationThreshold)
         {
-            transform.rotation = Quaternion.Slerp(
-                transform.rotation,
-                Quaternion.LookRotation(direction),
-                _rotationSpeed * Time.deltaTime);
+            rotation = Quaternion.Slerp(
+               current.rotation,
+               Quaternion.LookRotation(direction),
+               rotationSpeed * Time.deltaTime);
         }
+
+        return rotation;
     }
 
-    private void CheckWaypointReached()
+    private Transform CheckWaypointReached(
+        Transform current, Transform currentWaypoint, float reachThreshold, EnemyPath path)
     {
-        float distance = Vector3.Distance(transform.position, _currentWaypoint.position);
+        float distance = Vector3.Distance(current.position, currentWaypoint.position);
 
-        if (distance < _reachThreshold)
+        if (distance < reachThreshold)
         {
             _currentWaypointIndex++;
 
-            if (_currentWaypointIndex >= _path.Count)
+            if (_currentWaypointIndex >= path.Count)
                 _currentWaypointIndex = 0;
 
-            UpdateCurrentWaypoint();
+            return path.GetWaypoint(_currentWaypointIndex);
         }
+
+        return currentWaypoint;
     }
 
-    private void UpdateCurrentWaypoint()
-    {
-        _currentWaypoint = _path.GetWaypoint(_currentWaypointIndex);
-    }
+
+    // метод оказался не нужен после рефакторинга
+    //private Transform UpdateCurrentWaypoint(EnemyPath path, int currentWaypointIndex) =>
+    //     path.GetWaypoint(currentWaypointIndex);
+
+    // - не надо передавать данные между методами через поля.
+    //   Для этого есть входные параметры и возвращаемое значение.
+
+    //private void UpdateCurrentWaypoint()
+    //{
+    //    _currentWaypoint = _path.GetWaypoint(_currentWaypointIndex);
+    //}
 }
